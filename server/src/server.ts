@@ -645,7 +645,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', message: 'VIDYA OS Backend is running' }));
 
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+if (process.env['NODE_ENV'] !== 'production' && !process.env['VERCEL']) {
   app.listen(port, () => console.log(`Server listening on port ${port}`));
 }
 
