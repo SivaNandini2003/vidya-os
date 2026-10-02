@@ -1,0 +1,326 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        String
+  avatarColor String?
+
+  student     Student?
+  teacher     Teacher?
+  parent      Parent?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Teacher {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  phone         String?
+  qualification String?
+
+  classes       SchoolClass[]
+  subjects      ClassSubject[]
+  marks         Mark[]
+  attendance    Attendance[]
+  assignments   Assignment[]
+  messages      Message[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Parent {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id])
+  phone      String?
+  relation   String?
+  occupation String?
+
+  students   Student[]
+  messages   Message[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Student {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  rollNo        Int?
+  dob           DateTime?
+  gender        String?
+  phone         String?
+  address       String?
+  admissionDate DateTime?
+  status        String   @default("active")
+
+  classId       String
+  class         SchoolClass @relation(fields: [classId], references: [id])
+
+  parentId      String
+  parent        Parent      @relation(fields: [parentId], references: [id])
+
+  attendance    Attendance[]
+  marks         Mark[]
+  fees          Fee[]
+  submissions   AssignmentSubmission[]
+  messages      Message[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SchoolClass {
+  id             String   @id @default(cuid())
+  grade          String
+  section        String
+  name           String
+  room           String?
+
+  classTeacherId String
+  classTeacher   Teacher  @relation(fields: [classTeacherId], references: [id])
+
+  students       Student[]
+  subjects       ClassSubject[]
+  attendance     Attendance[]
+  marks          Mark[]
+  exams          Exam[]
+  assignments    Assignment[]
+  announcements  Announcement[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([grade, section])
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+
+  classes     ClassSubject[]
+  marks       Mark[]
+  exams       Exam[]
+  assignments Assignment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ClassSubject {
+  id        String   @id @default(cuid())
+  classId   String
+  class     SchoolClass @relation(fields: [classId], references: [id])
+  subjectId String
+  subject   Subject     @relation(fields: [subjectId], references: [id])
+  teacherId String
+  teacher   Teacher     @relation(fields: [teacherId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([classId, subjectId])
+}
+
+model Attendance {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id])
+  classId           String
+  class             SchoolClass @relation(fields: [classId], references: [id])
+  date              DateTime
+  period            String
+  status            String
+  
+  markedByTeacherId String
+  markedByTeacher   Teacher  @relation(fields: [markedByTeacherId], references: [id])
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([studentId, date, period])
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  title     String
+  classId   String
+  class     SchoolClass @relation(fields: [classId], references: [id])
+  subjectId String
+  subject   Subject     @relation(fields: [subjectId], references: [id])
+  date      DateTime
+  time      String?
+  room      String?
+
+  marks     Mark[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Mark {
+  id                 String   @id @default(cuid())
+  studentId          String
+  student            Student  @relation(fields: [studentId], references: [id])
+  classId            String
+  class              SchoolClass @relation(fields: [classId], references: [id])
+  subjectId          String
+  subject            Subject     @relation(fields: [subjectId], references: [id])
+  examId             String
+  exam               Exam        @relation(fields: [examId], references: [id])
+  score              Float
+  maxScore           Float
+  date               DateTime
+
+  enteredByTeacherId String
+  enteredByTeacher   Teacher     @relation(fields: [enteredByTeacherId], references: [id])
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([studentId, examId, subjectId])
+}
+
+model Assignment {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  classId      String
+  class        SchoolClass @relation(fields: [classId], references: [id])
+  subjectId    String
+  subject      Subject     @relation(fields: [subjectId], references: [id])
+  teacherId    String
+  teacher      Teacher     @relation(fields: [teacherId], references: [id])
+  assignedDate DateTime
+  dueDate      DateTime
+
+  submissions  AssignmentSubmission[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AssignmentSubmission {
+  id           String   @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id])
+
+  submittedAt  DateTime @default(now())
+
+  @@unique([assignmentId, studentId])
+}
+
+model Fee {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  title      String
+  amount     Float
+  paidAmount Float    @default(0)
+  dueDate    DateTime
+  status     String
+
+  payments   Payment[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  feeId     String
+  fee       Fee      @relation(fields: [feeId], references: [id])
+  amount    Float
+  date      DateTime
+  method    String
+  reference String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  audience   String
+  classId    String?
+  class      SchoolClass? @relation(fields: [classId], references: [id])
+  authorName String
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  threadKey  String
+  
+  teacherId  String
+  teacher    Teacher  @relation(fields: [teacherId], references: [id])
+  
+  parentId   String
+  parent     Parent   @relation(fields: [parentId], references: [id])
+
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+
+  fromRole   String
+  body       String
+  read       Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String
+  title       String
+  body        String
+  
+  recipients  NotificationRecipient[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model NotificationRecipient {
+  id             String   @id @default(cuid())
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  userId         String
+
+  read           Boolean @default(false)
+
+  @@unique([notificationId, userId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorName  String
+  actorRole  String
+  action     String
+  detail     String
+  entity     String
+  entityId   String?
+
+  createdAt  DateTime @default(now())
+}
