@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const SESSION_KEY = "vidyalaya.session.v1";
 const TOKEN_KEY = "vidyalaya.token.v1";
-const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001/api";
+const API_URL = import.meta.env["VITE_API_URL"] ?? (import.meta.env.PROD ? "/api" : "http://localhost:3001/api");
 
 interface Actor { name: string; role: Role; }
 
