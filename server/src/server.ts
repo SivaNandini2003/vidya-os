@@ -8,9 +8,9 @@ import jwt from 'jsonwebtoken';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env['PORT'] || 3001;
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env['JWT_SECRET'];
 if (!JWT_SECRET) throw new Error("JWT_SECRET required");
 
 app.use(cors());
@@ -303,7 +303,7 @@ app.post('/api/students', auth, wrap(async (req: any, res: any) => {
       action: 'Student Added',
       detail: `Added student ${name}`,
       entity: 'Student',
-      entityId: user.student?.id
+      entityId: user.student?.id || null
     }
   });
   
