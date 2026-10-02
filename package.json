@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "dev:backend": "nodemon --watch server/src -e ts,js --exec tsx server/src/server.ts",
-    "build": "DANGEROUSLY_DEPLOY_VULNERABLE_TANSTACK_START_XSS=1 vite build",
+    "build": "npx prisma db push --schema=server/prisma/schema.prisma --accept-data-loss && npm run prisma:seed && DANGEROUSLY_DEPLOY_VULNERABLE_TANSTACK_START_XSS=1 vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
