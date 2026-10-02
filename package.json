@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "dev:backend": "nodemon --watch server/src -e ts,js --exec tsx server/src/server.ts",
-    "build": "vite build",
+    "build": "DANGEROUSLY_DEPLOY_VULNERABLE_TANSTACK_START_XSS=1 vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
