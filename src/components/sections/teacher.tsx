@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { CalendarCheck, ClipboardList, FileText, GraduationCap, Megaphone, MessageSquare, Save, School, Sparkles } from "lucide-react";
+import { CalendarCheck, ClipboardList, FileText, GraduationCap, Megaphone, MessageSquare, Save, School, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -646,7 +646,7 @@ function MessagesPage() {
 }
 
 function AnnouncementsPage() {
-  const { state, publishAnnouncement } = useSchool();
+  const { state, publishAnnouncement, removeAnnouncement } = useSchool();
   const s = useSelectors();
   const actor = useActor();
   const { classes } = useTeacherScope();
@@ -697,7 +697,12 @@ function AnnouncementsPage() {
         <div className="space-y-3">
           {visible.map((a) => (
             <div key={a.id} className="surface-card p-4">
-              <p className="font-medium">{a.title}</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-medium">{a.title}</p>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeAnnouncement(a.id, actor)}>
+                  <Trash2 className="size-3 text-destructive" />
+                </Button>
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
               <p className="mt-2 text-xs text-muted-foreground">{a.authorName} · {prettyDateTime(a.createdAt)}</p>
             </div>

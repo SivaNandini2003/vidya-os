@@ -35,6 +35,7 @@ interface StoreValue {
   addFee: (input: any, actor: Actor) => Promise<void>;
   payFee: (feeId: string, amount: number, method: string, actor: Actor) => Promise<void>;
   publishAnnouncement: (input: Omit<Announcement, "id" | "createdAt">, actor: Actor) => Promise<void>;
+  removeAnnouncement: (id: string, actor: Actor) => Promise<void>;
   sendMessage: (input: any, actor: Actor) => Promise<void>;
   markNotificationRead: (id: string, userId: string) => Promise<void>;
   markAllNotificationsRead: (userId: string) => Promise<void>;
@@ -193,6 +194,9 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   const publishAnnouncement: StoreValue["publishAnnouncement"] = (input, actor) =>
     withToast(api("/announcements", { method: "POST", body: JSON.stringify(input) }), "Announcement published");
     
+  const removeAnnouncement: StoreValue["removeAnnouncement"] = (id, actor) =>
+    withToast(api(`/announcements/${id}`, { method: "DELETE" }), "Announcement removed");
+    
   const sendMessage: StoreValue["sendMessage"] = async (input, actor) => {
     const token = localStorage.getItem(TOKEN_KEY);
     const res = await fetch(`${API_URL}/messages`, {
@@ -226,7 +230,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
       state, ready, currentUser, login, logout, resetDemoData,
       addStudent, updateStudent, removeStudent, addTeacher, updateTeacher, removeTeacher, addClass, updateClass, removeClass,
       saveAttendance, saveMarks, createAssignment, toggleAssignmentDone,
-      addFee, payFee, publishAnnouncement, sendMessage,
+      addFee, payFee, publishAnnouncement, removeAnnouncement, sendMessage,
       markNotificationRead, markAllNotificationsRead, markMessagesRead,
     }),
     [state, ready, currentUser, login, logout]

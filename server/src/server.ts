@@ -687,6 +687,17 @@ app.post('/api/announcements', auth, wrap(async (req: any, res: any) => {
   res.json(ann);
 }));
 
+app.delete('/api/announcements/:id', auth, wrap(async (req: any, res: any) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'teacher') return res.status(403).json({ error: 'Forbidden' });
+  const annId = req.params.id;
+  await prisma.announcement.delete({ where: { id: annId } });
+  
+  await prisma.auditLog.create({
+    data: { actorName: req.user.role, actorRole: req.user.role, action: 'Announcement Deleted', detail: `Deleted announcement ${annId}`, entity: 'Announcement', entityId: annId }
+  });
+  res.json({ success: true });
+}));
+
 app.post('/api/messages', auth, wrap(async (req: any, res: any) => {
   const { teacherId, parentId, studentId, fromRole, body } = req.body;
   if (!teacherId || !parentId || !studentId || !fromRole || !body) {

@@ -926,7 +926,7 @@ function FeesPage() {
 }
 
 function AnnouncementsPage() {
-  const { state, publishAnnouncement } = useSchool();
+  const { state, publishAnnouncement, removeAnnouncement } = useSchool();
   const actor = useActor();
   const [form, setForm] = useState({ title: "", body: "", audience: "all" as Audience, classId: state.classes[0]?.id ?? "" });
 
@@ -990,7 +990,12 @@ function AnnouncementsPage() {
             <div key={a.id} className="surface-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium">{a.title}</p>
-                <StatusBadge tone="info">{a.audience === "class" ? `Class ${a.classId}` : a.audience}</StatusBadge>
+                <div className="flex items-center gap-2">
+                  <StatusBadge tone="info">{a.audience === "class" ? `Class ${a.classId}` : a.audience}</StatusBadge>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeAnnouncement(a.id, actor)}>
+                    <Trash2 className="size-3 text-destructive" />
+                  </Button>
+                </div>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{a.body}</p>
               <p className="mt-2 text-xs text-muted-foreground">{a.authorName} · {prettyDateTime(a.createdAt)}</p>
