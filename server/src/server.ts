@@ -25,20 +25,12 @@ const toStr = (s: any) => s ?? "";
 // --- AUTH ---
 app.post('/api/auth/login', wrap(async (req: any, res: any) => {
   const { email, password } = req.body;
-  let user = await prisma.user.findUnique({ 
+  const user = await prisma.user.findUnique({ 
     where: { email },
     include: { teacher: true, student: true, parent: true }
   });
-  
-  if (!user) {
-    user = await prisma.user.findFirst({
-      where: { role: 'student' },
-      include: { teacher: true, student: true, parent: true }
-    });
-  }
-  
-  if (!user) {
-    return res.status(401).json({ error: 'No accounts available' });
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ error: 'Invalid credentials' });
   }
   const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '8h' });
   
@@ -51,14 +43,6 @@ app.post('/api/auth/login', wrap(async (req: any, res: any) => {
 const auth = (req: any, res: any, next: any) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
-  
-  if (token.startsWith('demo-token-')) {
-    try {
-      req.user = JSON.parse(Buffer.from(token.replace('demo-token-', ''), 'base64').toString('utf8'));
-      return next();
-    } catch {}
-  }
-
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     next();

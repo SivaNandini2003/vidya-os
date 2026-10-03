@@ -100,58 +100,25 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   }, [fetchState]);
 
   const login: StoreValue["login"] = async (email, password) => {
-    let data: any = null;
-    let res: any = null;
     try {
-      res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      data = await res.json();
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(SESSION_KEY, data.user.id);
+        localStorage.setItem('vidyalaya.user.v1', JSON.stringify(data.user));
+        setCurrentUser(data.user);
+        await fetchState();
+        return { ok: true, user: data.user };
+      }
+      return { ok: false, error: data.error || "Invalid credentials" };
     } catch (e) {
-      // Ignore network errors to fallback to demo entry
+      return { ok: false, error: "Unable to connect to VIDYA OS services." };
     }
-
-    if (res?.ok && data) {
-      localStorage.setItem(TOKEN_KEY, data.token);
-      localStorage.setItem(SESSION_KEY, data.user.id);
-      localStorage.setItem('vidyalaya.user.v1', JSON.stringify(data.user));
-      setCurrentUser(data.user);
-      await fetchState();
-      return { ok: true, user: data.user };
-    }
-
-    // DEMO BYPASS: Fallback to let the user in instantly
-    let role: Role = "student";
-    let name = "Demo Student";
-    if (email === "admin@vidya.edu") { role = "admin"; name = "Rohit Malhotra"; }
-    else if (email === "priya.sharma@vidya.edu") { role = "teacher"; name = "Priya Sharma"; }
-    else if (email === "arjun.kumar@student.vidya.edu") { role = "student"; name = "Arjun Kumar"; }
-    else if (email === "meena.kumar@gmail.com") { role = "parent"; name = "Meena Kumar"; }
-
-    // Use a hardcoded DB ID from Prisma seed for safety so CRUD works (if seed matches) or rely on fake ones
-    // We pick generic IDs assuming seed data might differ or they just need to explore the UI. 
-    // Actual DB updates might fail if ID doesn't exist, but frontend allows them in!
-    const demoUser = {
-      id: "demo-id-" + role,
-      email,
-      name,
-      role,
-      avatarColor: "#3b82f6",
-      linkedId: "demo-linked-" + role
-    };
-
-    const fakeToken = "demo-token-" + btoa(JSON.stringify({ id: demoUser.id, role }));
-
-    localStorage.setItem(TOKEN_KEY, fakeToken);
-    localStorage.setItem(SESSION_KEY, demoUser.id);
-    localStorage.setItem('vidyalaya.user.v1', JSON.stringify(demoUser));
-    setCurrentUser(demoUser as User);
-
-    try { await fetchState(); } catch {} // fetch state gracefully
-
-    return { ok: true, user: demoUser as User };
   };
 
   const resetDemoData = async () => {
