@@ -348,7 +348,7 @@ app.post('/api/teachers', auth, wrap(async (req: any, res: any) => {
       action: 'Teacher Added',
       detail: `Added teacher ${name}`,
       entity: 'Teacher',
-      entityId: user.teacher?.id
+      ...(user.teacher?.id ? { entityId: user.teacher.id } : {})
     }
   });
   
@@ -579,7 +579,7 @@ app.post('/api/announcements', auth, wrap(async (req: any, res: any) => {
   }
 
   await prisma.auditLog.create({
-    data: { actorName: req.user.role, actorRole: req.user.role, action: 'Announcement Published', detail: `Published ${title}`, entity: 'Announcement', entityId: ann.id }
+    data: { actorName: req.user.role, actorRole: req.user.role, action: 'Announcement Published', detail: `Published ${title}`, entity: 'Announcement', ...(ann.id ? { entityId: ann.id } : {}) }
   });
   res.json(ann);
 }));
