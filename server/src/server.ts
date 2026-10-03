@@ -252,7 +252,7 @@ app.get('/api/state', auth, wrap(async (req: any, res: any) => {
 
 app.post('/api/students', auth, wrap(async (req: any, res: any) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
-  const { name, email, parentId, classId, rollNo, gender, phone, address, dob, admissionDate } = req.body;
+  const { name, email, parentId, parentName, classId, rollNo, gender, phone, address, dob, admissionDate } = req.body;
   
   let actualEmail = email;
   if (!actualEmail && name) {
@@ -270,7 +270,32 @@ app.post('/api/students', auth, wrap(async (req: any, res: any) => {
     if (existing) return res.status(400).json({ error: 'Email already exists' });
   }
   
-  if (!parentId) return res.status(400).json({ error: 'Parent ID is required' });
+  let finalParentId = parentId;
+  if (!finalParentId && parentName) {
+    let baseParent = parentName.toLowerCase().replace(/[^a-z0-9]/g, '.');
+    let pEmail = `${baseParent}@parent.vidya.edu`;
+    let count = 1;
+    while (await prisma.user.findUnique({ where: { email: pEmail } })) {
+      pEmail = `${baseParent}${count}@parent.vidya.edu`;
+      count++;
+    }
+    const pPasswordHash = await bcrypt.hash('demo1234', 10);
+    const pUser = await prisma.user.create({
+      data: {
+        email: pEmail,
+        password: pPasswordHash,
+        name: parentName,
+        role: 'parent',
+        parent: {
+          create: { relation: 'Parent' }
+        }
+      },
+      include: { parent: true }
+    });
+    finalParentId = pUser.parent?.id;
+  }
+  
+  if (!finalParentId) return res.status(400).json({ error: 'Parent ID or Name is required' });
   
   const passwordHash = await bcrypt.hash('demo1234', 10);
   const user = await prisma.user.create({
@@ -281,7 +306,7 @@ app.post('/api/students', auth, wrap(async (req: any, res: any) => {
       role: 'student',
       student: {
         create: {
-          parentId: parentId,
+          parentId: finalParentId,
           classId,
           rollNo: rollNo ? Number(rollNo) : null,
           gender: gender || "",

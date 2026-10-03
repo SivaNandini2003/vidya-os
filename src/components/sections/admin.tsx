@@ -212,7 +212,7 @@ function AddStudentDialog() {
     phone: "+91 98765 00000",
     address: "Bengaluru",
     classId: state.classes[0]?.id ?? "",
-    parentId: state.parents[0]?.id ?? "",
+    parentName: "",
   });
 
   const cls = state.classes.find((c) => c.id === form.classId);
@@ -250,17 +250,8 @@ function AddStudentDialog() {
               </Select>
             </Field>
           </div>
-          <Field label="Parent / guardian">
-            <Select value={form.parentId} onValueChange={(v) => setForm({ ...form, parentId: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {state.parents.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} · {p.relation}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Field label="Parent / guardian name">
+            <Input value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} placeholder="e.g. Neha Bansal" />
           </Field>
           <Field label="Class & section">
             <Select value={form.classId} onValueChange={(v) => setForm({ ...form, classId: v })}>
@@ -292,6 +283,10 @@ function AddStudentDialog() {
             onClick={async () => {
               if (!form.name.trim()) {
                 toast.error("Enter the student's name");
+                return;
+              }
+              if (!form.parentName.trim()) {
+                toast.error("Enter the parent's name");
                 return;
               }
               try {
