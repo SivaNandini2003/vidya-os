@@ -12,6 +12,7 @@ import {
   Users,
   Wallet,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -543,9 +544,12 @@ function TeachersPage() {
                 <p className="font-medium">{t.name}</p>
                 <p className="text-xs text-muted-foreground">{t.id} · {t.qualification}</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeTeacher(t.id, actor)}>
-                <Trash2 className="size-4 text-destructive" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <EditTeacherDialog teacher={t} />
+                <Button variant="ghost" size="icon" onClick={() => removeTeacher(t.id, actor)}>
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
             </div>
             <dl className="mt-4 space-y-1.5 text-sm">
               <p className="text-muted-foreground">Subjects: <span className="text-foreground">{t.subjectIds.map(s.subjectName).join(", ") || "—"}</span></p>
@@ -617,8 +621,9 @@ function ClassesPage() {
             <div key={c.id} className="surface-card p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-lg font-semibold">Class {c.name}</h3>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <StatusBadge tone="info">{studs.length} students</StatusBadge>
+                  <EditClassDialog classInfo={c} />
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeClass(c.id, actor)}>
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
@@ -1189,5 +1194,61 @@ function SettingsPage() {
         </AlertDialog>
       </div>
     </div>
+  );
+}
+
+function EditTeacherDialog({ teacher }: { teacher: any }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(teacher.name);
+  const [phone, setPhone] = useState(teacher.phone || "");
+  const [qual, setQual] = useState(teacher.qualification || "");
+  const { updateTeacher } = useSchool();
+  const actor = useActor();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+         <Button variant="ghost" size="icon"><Pencil className="size-4 text-muted-foreground" /></Button>
+      </DialogTrigger>
+      <DialogContent>
+         <DialogHeader><DialogTitle>Edit Teacher</DialogTitle><DialogDescription></DialogDescription></DialogHeader>
+         <div className="grid gap-3">
+           <Field label="Name"><Input value={name} onChange={e => setName(e.target.value)} /></Field>
+           <Field label="Phone"><Input value={phone} onChange={e => setPhone(e.target.value)} /></Field>
+           <Field label="Qualification"><Input value={qual} onChange={e => setQual(e.target.value)} /></Field>
+         </div>
+         <DialogFooter>
+           <Button onClick={() => { updateTeacher(teacher.id, { name, phone, qualification: qual }, actor); setOpen(false); }}>Save changes</Button>
+         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditClassDialog({ classInfo }: { classInfo: any }) {
+  const [open, setOpen] = useState(false);
+  const [grade, setGrade] = useState(classInfo.grade);
+  const [section, setSection] = useState(classInfo.section);
+  const [room, setRoom] = useState(classInfo.room || "");
+  const { updateClass } = useSchool();
+  const actor = useActor();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+         <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="size-4 text-muted-foreground" /></Button>
+      </DialogTrigger>
+      <DialogContent>
+         <DialogHeader><DialogTitle>Edit Class</DialogTitle><DialogDescription></DialogDescription></DialogHeader>
+         <div className="grid gap-3">
+           <Field label="Grade"><Input value={grade} onChange={e => setGrade(e.target.value)} /></Field>
+           <Field label="Section"><Input value={section} onChange={e => setSection(e.target.value.toUpperCase())} /></Field>
+           <Field label="Room"><Input value={room} onChange={e => setRoom(e.target.value)} /></Field>
+         </div>
+         <DialogFooter>
+           <Button onClick={() => { updateClass(classInfo.id, { grade, section, room }, actor); setOpen(false); }}>Save changes</Button>
+         </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

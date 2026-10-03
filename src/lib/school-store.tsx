@@ -25,7 +25,9 @@ interface StoreValue {
   addTeacher: (input: any, actor: Actor) => Promise<Teacher>;
   removeTeacher: (id: string, actor: Actor) => Promise<void>;
   addClass: (input: any, actor: Actor) => Promise<void>;
+  updateTeacher: (id: string, patch: Partial<Teacher>, actor: Actor) => Promise<void>;
   removeClass: (id: string, actor: Actor) => Promise<void>;
+  updateClass: (id: string, patch: any, actor: Actor) => Promise<void>;
   saveAttendance: (classId: string, date: string, entries: Record<string, AttendanceStatus>, teacherId: string, actor: Actor) => Promise<void>;
   saveMarks: (classId: string, subjectId: string, examName: string, scores: Record<string, number>, teacherId: string, actor: Actor) => Promise<void>;
   createAssignment: (input: Omit<Assignment, "id" | "completedBy">, actor: Actor) => Promise<void>;
@@ -158,11 +160,17 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   const removeTeacher: StoreValue["removeTeacher"] = (id, actor) =>
     withToast(api(`/teachers/${id}`, { method: "DELETE" }), "Teacher removed");
 
+  const updateTeacher: StoreValue["updateTeacher"] = (id, patch, actor) =>
+    withToast(api(`/teachers/${id}`, { method: "PUT", body: JSON.stringify(patch) }), "Teacher updated");
+
   const addClass: StoreValue["addClass"] = (input, actor) =>
     withToast(api("/classes", { method: "POST", body: JSON.stringify(input) }), "Class added");
 
   const removeClass: StoreValue["removeClass"] = (id, actor) =>
     withToast(api(`/classes/${id}`, { method: "DELETE" }), "Class removed");
+    
+  const updateClass: StoreValue["updateClass"] = (id, patch, actor) =>
+    withToast(api(`/classes/${id}`, { method: "PUT", body: JSON.stringify(patch) }), "Class updated");
     
   const saveAttendance: StoreValue["saveAttendance"] = (classId, date, entries, teacherId, actor) =>
     withToast(api("/attendance", { method: "POST", body: JSON.stringify({ classId, date, entries, teacherId }) }), "Attendance saved");
@@ -216,7 +224,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   const value = useMemo<StoreValue>(
     () => ({
       state, ready, currentUser, login, logout, resetDemoData,
-      addStudent, updateStudent, removeStudent, addTeacher, removeTeacher, addClass, removeClass,
+      addStudent, updateStudent, removeStudent, addTeacher, updateTeacher, removeTeacher, addClass, updateClass, removeClass,
       saveAttendance, saveMarks, createAssignment, toggleAssignmentDone,
       addFee, payFee, publishAnnouncement, sendMessage,
       markNotificationRead, markAllNotificationsRead, markMessagesRead,

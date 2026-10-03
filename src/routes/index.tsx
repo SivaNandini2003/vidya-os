@@ -67,7 +67,7 @@ function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
-      <section className="hero-mesh relative hidden flex-col justify-between p-10 text-sidebar-foreground lg:flex">
+      <section className="hero-mesh relative flex flex-col justify-between p-8 text-sidebar-foreground lg:p-10">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-xl bg-sidebar-primary font-display font-bold text-sidebar-primary-foreground">
             V

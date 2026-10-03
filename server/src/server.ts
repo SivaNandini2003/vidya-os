@@ -379,7 +379,7 @@ app.delete('/api/teachers/:id', auth, wrap(async (req: any, res: any) => {
 app.delete('/api/classes/:id', auth, wrap(async (req: any, res: any) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
   const classId = req.params.id;
-  await prisma.class.delete({ where: { id: classId } });
+  await prisma.schoolClass.delete({ where: { id: classId } });
   
   await prisma.auditLog.create({
     data: {
@@ -390,6 +390,45 @@ app.delete('/api/classes/:id', auth, wrap(async (req: any, res: any) => {
       entity: 'Class',
       entityId: classId
     }
+  });
+  res.json({ success: true });
+}));
+
+app.put('/api/teachers/:id', auth, wrap(async (req: any, res: any) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const teacherId = req.params.id;
+  const { name, phone, qualification } = req.body;
+  const teacher = await prisma.teacher.findUnique({ where: { id: teacherId } });
+  if (!teacher) return res.status(404).json({ error: 'Teacher not found' });
+  
+  await prisma.user.update({
+    where: { id: teacher.userId },
+    data: { name }
+  });
+  
+  await prisma.teacher.update({
+    where: { id: teacherId },
+    data: { phone, qualification }
+  });
+  
+  await prisma.auditLog.create({
+    data: { actorName: req.user.role, actorRole: req.user.role, action: 'Teacher Updated', detail: `Updated teacher ${name}`, entity: 'Teacher', entityId: teacherId }
+  });
+  res.json({ success: true });
+}));
+
+app.put('/api/classes/:id', auth, wrap(async (req: any, res: any) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const classId = req.params.id;
+  const { grade, section, room } = req.body;
+  
+  await prisma.schoolClass.update({
+    where: { id: classId },
+    data: { grade, section, room, name: `${grade}-${section}` }
+  });
+  
+  await prisma.auditLog.create({
+    data: { actorName: req.user.role, actorRole: req.user.role, action: 'Class Updated', detail: `Updated class ${grade}-${section}`, entity: 'Class', entityId: classId }
   });
   res.json({ success: true });
 }));
