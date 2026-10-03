@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -458,7 +459,7 @@ function StudentsPage() {
 }
 
 function TeachersPage() {
-  const { state, addTeacher } = useSchool();
+  const { state, addTeacher, removeTeacher } = useSchool();
   const s = useSelectors();
   const actor = useActor();
   const [open, setOpen] = useState(false);
@@ -538,10 +539,13 @@ function TeachersPage() {
           <div key={t.id} className="surface-card p-5">
             <div className="flex items-center gap-3">
               <StudentAvatar name={t.name} color="#1f4d8f" />
-              <div>
+              <div className="flex-1">
                 <p className="font-medium">{t.name}</p>
                 <p className="text-xs text-muted-foreground">{t.id} · {t.qualification}</p>
               </div>
+              <Button variant="ghost" size="icon" onClick={() => removeTeacher(t.id, actor)}>
+                <Trash2 className="size-4 text-destructive" />
+              </Button>
             </div>
             <dl className="mt-4 space-y-1.5 text-sm">
               <p className="text-muted-foreground">Subjects: <span className="text-foreground">{t.subjectIds.map(s.subjectName).join(", ") || "—"}</span></p>
@@ -557,7 +561,7 @@ function TeachersPage() {
 }
 
 function ClassesPage() {
-  const { state, addClass } = useSchool();
+  const { state, addClass, removeClass } = useSchool();
   const s = useSelectors();
   const actor = useActor();
   const [open, setOpen] = useState(false);
@@ -613,7 +617,12 @@ function ClassesPage() {
             <div key={c.id} className="surface-card p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-lg font-semibold">Class {c.name}</h3>
-                <StatusBadge tone="info">{studs.length} students</StatusBadge>
+                <div className="flex items-center gap-2">
+                  <StatusBadge tone="info">{studs.length} students</StatusBadge>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeClass(c.id, actor)}>
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{c.room}</p>
               <p className="mt-3 text-sm">Class teacher: <span className="font-medium">{s.teacherName(c.classTeacherId)}</span></p>
